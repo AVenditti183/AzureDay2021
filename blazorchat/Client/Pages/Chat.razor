@@ -1,0 +1,67 @@
+﻿@page "/chat"
+@using Microsoft.AspNetCore.SignalR.Client
+@using System.Runtime.Serialization.Formatters.Binary
+
+@if (!isConnected)
+{
+    <div>
+        <label>
+            Username
+            <input @bind="username" />
+        </label>
+        <button @onclick="Connect">Entra</button>
+    </div>
+}
+else
+{
+    <div>
+        <label>
+            Messaggio
+            <textarea @bind="message"></textarea>
+            <button @onclick="Invia">Invia</button>
+        </label>
+    </div>
+    <div>
+        @foreach (var m in messages)
+        {
+            <li>@m.Username: @m.Message</li>
+        }
+    </div>
+}
+
+@code {
+    private HubConnection connection;
+    private string username;
+    private string message;
+    private bool isConnected = false;
+    private List<ClientMessage> messages = new List<ClientMessage>();
+
+    public async Task Connect()
+    {
+        connection = new HubConnectionBuilder()
+            .WithUrl($"https://localhost:5001/chat")
+            .WithAutomaticReconnect()
+            .Build();
+
+        await connection.StartAsync();
+        connection.On<ClientMessage>("clientMessage", (m) =>
+        {
+            messages.Add(m);
+            StateHasChanged();
+        });
+
+        isConnected = true;
+    }
+
+    public async Task Invia()
+    {
+        if (string.IsNullOrEmpty(message)) return;
+        await connection.SendAsync("sendMessage", new ClientMessage()
+        {
+            Username = username,
+            Message = message
+        });
+        message = string.Empty;
+        StateHasChanged();
+    }
+}

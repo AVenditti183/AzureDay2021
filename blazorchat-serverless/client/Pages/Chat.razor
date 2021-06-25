@@ -1,0 +1,75 @@
+﻿@page "/chat"
+@using Microsoft.AspNetCore.SignalR.Client
+
+@if (!isConnected)
+{
+    <div>
+        <label>
+            Username
+            <input @bind="username"/>
+        </label>
+        <button @onclick="Connect">Entra</button>
+    </div>
+}
+else
+{
+    <div>
+        <label>
+            Messaggio
+            <textarea @bind="message"></textarea>
+            <button @onclick="Invia">Invia</button>
+        </label>
+    </div>
+    <div>
+        @foreach (var m in messages)
+        {
+            <li>@m.Username: @m.Message</li>
+        }
+    </div>
+}
+
+@code {
+    private HubConnection connection;
+    private string username;
+    private string message;
+    private bool isConnected = false;
+    private List<ClientMessage> messages = new List<ClientMessage>();
+    private readonly HttpClient httpClient = new HttpClient(); //HttpClient for posting messages
+    public async Task Connect()
+    {
+        connection = new HubConnectionBuilder()
+            .WithUrl($"http://localhost:7071/api")
+            .WithAutomaticReconnect()
+            .Build();
+
+        await connection.StartAsync();
+        connection.On<ClientMessage>("clientMessage", (m) =>
+        {
+            messages.Add(m);
+            StateHasChanged();
+        });
+
+        isConnected = true;
+    }
+
+    public async Task Invia()
+    {
+        if(string.IsNullOrEmpty(message)) return;
+        
+        var msg = new ClientMessage()
+        {
+            Username = username,
+            Message = message
+        };
+
+        await httpClient.PostAsJsonAsync($"http://localhost:7071/api/messages", msg); // post to the function app
+        message = string.Empty; // clear the message from the textbox
+        StateHasChanged(); //update the UI
+    }
+
+    private class ClientMessage
+    {
+        public string Username { get; set; }
+        public string Message { get; set; }
+    }
+}

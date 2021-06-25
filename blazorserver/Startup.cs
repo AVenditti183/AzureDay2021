@@ -1,16 +1,10 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using blazorserver.Data;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
+using Microsoft.Azure.SignalR;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using blazorserver.Data;
-using Microsoft.Azure.SignalR;
 
 namespace blazorserver
 {
@@ -30,7 +24,10 @@ namespace blazorserver
             services.AddRazorPages();
             services.AddServerSideBlazor();
             services.AddSignalR()
-                .AddAzureSignalR(config => { config.ServerStickyMode = ServerStickyMode.Required; });
+                .AddAzureSignalR(config =>
+                {
+                    config.ServerStickyMode = ServerStickyMode.Required;
+                });
 
             services.AddSingleton<WeatherForecastService>();
         }

@@ -1,13 +1,10 @@
+using blazorchat.Server.Hub;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.ResponseCompression;
+using Microsoft.Azure.SignalR;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using System.Linq;
-using blazorchat.Server.Hub;
-using Microsoft.Azure.SignalR;
 
 namespace blazorchat.Server
 {
@@ -27,7 +24,10 @@ namespace blazorchat.Server
             services.AddControllersWithViews();
             services.AddRazorPages();
             services.AddSignalR()
-                .AddAzureSignalR(config => { config.ServerStickyMode = ServerStickyMode.Disabled; });
+                .AddAzureSignalR(config =>
+                {
+                    config.ServerStickyMode = ServerStickyMode.Disabled;
+                });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
